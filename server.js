@@ -1,22 +1,20 @@
-
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const sequelize = require('./config/database');
-const userRoutes = require('./routes/userRoutes');
+const express = require("express");
+const sequelize = require("./config/database");
+const userRoutes = require("./routes/userRoutes");
+const cors = require('cors');  
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json());
+app.use(cors());  // This will allow all CORS requests
 
-app.use(bodyParser.json());
-app.use('/api', userRoutes);
+app.use("/users", userRoutes);
 
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
-  console.log(`Server running at http://localhost:${PORT}`);
   try {
-    await sequelize.authenticate();
-    console.log('Database connection successful.');
+    await sequelize.sync({ force: false });
+    console.log(`Server running at http://localhost:${PORT}`);
   } catch (error) {
-    console.error('Failed to connect to the database:', error);
+    console.error("Error connecting to the database:", error);
   }
 });
