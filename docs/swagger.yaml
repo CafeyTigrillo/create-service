@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: Restaurant Employee API
+  description: API for managing employees across different restaurant branches
+  version: 1.0.0
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      description: This endpoint allows you to register a new employee in the system.
+      operationId: registerUser
+      tags:
+        - Users
+      requestBody:
+        description: User information required for registration
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The full name of the employee
+                  example: "Alice Admin"
+                email:
+                  type: string
+                  format: email
+                  description: The email address of the employee
+                  example: "alice@admin.com"
+                password:
+                  type: string
+                  description: The password of the employee
+                  example: "securePassword123"
+                role:
+                  type: string
+                  enum: [admin_central, branch_manager, branch_employee]
+                  description: The role of the employee
+                  example: "admin_central"
+                branch_id:
+                  type: integer
+                  description: The ID of the branch where the employee works (null for admin_central)
+                  example: null
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User created"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input or existing user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Email already registered"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error creating user"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the employee
+          example: 1
+        name:
+          type: string
+          description: The full name of the employee
+          example: "Alice Admin"
+        email:
+          type: string
+          format: email
+          description: The email address of the employee
+          example: "alice@admin.com"
+        role:
+          type: string
+          enum: [admin_central, branch_manager, branch_employee]
+          description: The role of the employee
+          example: "admin_central"
+        branch_id:
+          type: integer
+          nullable: true
+          description: The ID of the branch where the employee works (null for admin_central)
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the employee record was created
+          example: "2025-02-01T23:27:31.000Z"
+      required:
+        - id
+        - name
+        - email
+        - role
+        - created_at
