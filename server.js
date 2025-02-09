@@ -8,6 +8,7 @@ const swaggerDocument = YAML.load("./docs/swagger.yaml");
 const Eureka = require('eureka-js-client').Eureka;
 
 const app = express();
+const PORT = 3001;
 
 const eurekaClient = new Eureka({
   instance: {
@@ -15,13 +16,13 @@ const eurekaClient = new Eureka({
     hostName: 'localhost',
     ipAddr: '127.0.0.1',
     port: {
-      '$': process.env.PORT || 3001,
+      '$': PORT,
       '@enabled': true,
     },
     vipAddress: 'usersemployees-service',
-    statusPageUrl: `http://localhost:${process.env.PORT || 3001}/info`,
-    healthCheckUrl: `http://localhost:${process.env.PORT || 3001}/health`,
-    homePageUrl: `http://localhost:${process.env.PORT || 3001}`,
+    statusPageUrl: `http://localhost:${PORT}/info`,
+    healthCheckUrl: `http://localhost:${PORT}/health`,
+    homePageUrl: `http://localhost:${PORT}`,
     dataCenterInfo: {
       '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
       name: 'MyOwn',
@@ -60,7 +61,6 @@ app.use(cors());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/users", userRoutes);
 
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
   try {
     await sequelize.sync({ force: false });
