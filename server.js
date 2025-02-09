@@ -9,29 +9,49 @@ const Eureka = require('eureka-js-client').Eureka;
 
 const app = express();
 
-
 const eurekaClient = new Eureka({
   instance: {
-    app: 'createEmployees-service',  
+    app: 'usersemployees-service',
     hostName: 'localhost',
     ipAddr: '127.0.0.1',
     port: {
       '$': process.env.PORT || 3001,
       '@enabled': true,
     },
-    vipAddress: 'users-service',
+    vipAddress: 'usersemployees-service',
+    statusPageUrl: `http://localhost:${process.env.PORT || 3001}/info`,
+    healthCheckUrl: `http://localhost:${process.env.PORT || 3001}/health`,
+    homePageUrl: `http://localhost:${process.env.PORT || 3001}`,
     dataCenterInfo: {
       '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
       name: 'MyOwn',
     },
     registerWithEureka: true,
     fetchRegistry: true,
+    leaseRenewalIntervalInSeconds: 30,
+    leaseExpirationDurationInSeconds: 90,
   },
   eureka: {
-    host: 'localhost',  
-    port: 8761,     
+    host: 'localhost',
+    port: 8761,
     servicePath: '/eureka/apps/',
+    maxRetries: 10,
+    requestRetryDelay: 2000,
+    heartbeatInterval: 5000,
+    registryFetchInterval: 5000,
   },
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'UP' });
+});
+
+app.get('/info', (req, res) => {
+  res.json({
+    app: 'users-service',
+    status: 'UP',
+    timestamp: new Date()
+  });
 });
 
 app.use(express.json());
@@ -44,7 +64,9 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
   try {
     await sequelize.sync({ force: false });
-    eurekaClient.start();
+    eurekaClient.start(error => {
+      console.log(error || 'Eureka registration complete');
+    });
     console.log(`Server running at http://localhost:${PORT}`);
   } catch (error) {
     console.error("Error connecting to the database:", error);
@@ -52,6 +74,8 @@ app.listen(PORT, async () => {
 });
 
 process.on('SIGINT', () => {
-  eurekaClient.stop();
-  process.exit();
+  eurekaClient.stop(error => {
+    console.log('Deregistered from Eureka');
+    process.exit();
+  });
 });
